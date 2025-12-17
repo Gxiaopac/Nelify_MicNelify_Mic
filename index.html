@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麦克风批量测试工具 v2.10 - Netlify版</title>
+    <link rel="stylesheet" href="static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎤 麦克风批量测试工具 v2.10</h1>
+            <div class="status-bar" id="statusBar">就绪</div>
+        </header>
+
+        <div class="main-content">
+            <!-- 左侧控制面板 -->
+            <div class="control-panel">
+                <div class="panel-section">
+                    <h3>📱 设备选择</h3>
+                    <label for="deviceSelect" class="sr-only">麦克风设备选择</label>
+                    <select id="deviceSelect" class="form-control" title="选择麦克风设备">
+                        <option value="">正在加载设备...</option>
+                    </select>
+                    <button id="refreshDevices" class="btn btn-secondary">🔄 刷新设备</button>
+                </div>
+
+                <div class="panel-section">
+                    <h3>🎯 测试设置</h3>
+                    <div class="form-group">
+                        <label for="micId">麦克风编号:</label>
+                        <div class="input-group">
+                            <button id="micIdMinus" class="btn btn-sm">-</button>
+                            <input type="number" id="micId" class="form-control" value="1" min="1" title="输入当前测试的麦克风编号">
+                            <button id="micIdPlus" class="btn btn-sm">+</button>
+                        </div>
+                    </div>
+                    <button id="startTest" class="btn btn-primary btn-large">🎤 开始测试</button>
+                    <button id="playAudio" class="btn btn-secondary" disabled>🔊 播放录音</button>
+                </div>
+
+                <div class="panel-section">
+                    <h3>📌 标准麦克风</h3>
+                    <button id="setReference" class="btn btn-info">📌 设置标准麦克风模式</button>
+                    <div id="referenceInfo" class="reference-info">
+                        <p class="text-muted">未设置标准麦克风</p>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>⚙️ 检测设置</h3>
+                    <div class="check-options">
+                        <div class="check-group">
+                            <label class="text-bold">主要检测（必须）:</label>
+                            <div class="check-item">• RMS范围检测</div>
+                        </div>
+                        <div class="check-group">
+                            <label class="text-bold">可选检测:</label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="enableThd" class="check-option">
+                                <span>THD失真度检测</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="enablePeak" class="check-option" checked>
+                                <span>Peak削波检测</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="enableSnr" class="check-option" checked>
+                                <span>SNR信噪比检测</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="enableSensitivity" class="check-option" checked>
+                                <span>RMS偏差检测（标准麦克风）</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="enableLoopback" class="check-option" checked>
+                                <span>声卡回放通道检测</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="enableMav" class="check-option" checked>
+                                <span>MAV平均绝对值检测</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="enableCrestFactor" class="check-option" checked>
+                                <span>峰值因数检测</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>📊 测试统计</h3>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">总数:</span>
+                            <span id="statTotal" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">合格:</span>
+                            <span id="statPassed" class="stat-value stat-pass">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">不合格:</span>
+                            <span id="statFailed" class="stat-value stat-fail">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">合格率:</span>
+                            <span id="statRate" class="stat-value">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <button id="exportReport" class="btn btn-success">📊 导出报告</button>
+                    <button id="clearResults" class="btn btn-danger">🗑️ 清空结果</button>
+                </div>
+            </div>
+
+            <!-- 右侧内容区 -->
+            <div class="content-area">
+                <!-- 波形显示 -->
+                <div class="waveform-section">
+                    <h3>📈 实时波形</h3>
+                    <canvas id="waveformChart"></canvas>
+                </div>
+
+                <!-- 测试结果 -->
+                <div class="result-section">
+                    <h3>📋 测试结果</h3>
+                    <div id="testResult" class="test-result">
+                        <p class="text-muted">等待测试...</p>
+                    </div>
+                </div>
+
+                <!-- 日志 -->
+                <div class="log-section">
+                    <h3>📝 测试日志</h3>
+                    <div id="logArea" class="log-area"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/app.js"></script>
+</body>
+</html>
+
