@@ -11,12 +11,12 @@ let results = [];
 let config = {};
 
 // API 基础路径
-// 如果是 file:// 协议或本地开发，使用 Flask 服务器地址
+// 如果是 file:// 协议或本地开发，使用 Flask 服务器地址（包含 /api 前缀）
 // 如果是 Netlify 部署，使用 /api（会被 redirect 到函数）
 const API_BASE = (window.location.protocol === 'file:' || 
                   window.location.hostname === 'localhost' || 
                   window.location.hostname === '127.0.0.1')
-  ? 'http://127.0.0.1:5000'
+  ? 'http://127.0.0.1:5000/api'
   : '/api';
 
 // 初始化
@@ -75,7 +75,7 @@ function initChart() {
 // 加载配置
 async function loadConfig() {
     try {
-        const response = await fetch(`${API_BASE}/api/config`);
+        const response = await fetch(`${API_BASE}/config`);
         config = await response.json();
         updateCheckboxes();
     } catch (error) {
@@ -128,7 +128,7 @@ async function updateConfigFromUI() {
     config.enable_crest_factor_check = document.getElementById('enableCrestFactor').checked;
     
     try {
-        await fetch(`${API_BASE}/api/config`, {
+        await fetch(`${API_BASE}/config`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(config)
@@ -333,7 +333,7 @@ async function analyzeAudio(audioData, micId, sampleRate) {
         updateStatus('⚙️ 分析数据中...');
         log('⚙️ 分析音频数据...');
         
-        const response = await fetch(`${API_BASE}/api/analyze`, {
+        const response = await fetch(`${API_BASE}/analyze`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -536,7 +536,7 @@ function toggleReferenceMode() {
 // 更新标准麦克风信息
 async function updateReferenceInfo() {
     try {
-        const response = await fetch(`${API_BASE}/api/reference`);
+        const response = await fetch(`${API_BASE}/reference`);
         const data = await response.json();
         
         const infoDiv = document.getElementById('referenceInfo');
@@ -566,7 +566,7 @@ async function updateReferenceInfo() {
 // 更新统计
 async function updateStatistics() {
     try {
-        const response = await fetch(`${API_BASE}/api/results`);
+        const response = await fetch(`${API_BASE}/results`);
         const data = await response.json();
         results = data.results || [];
         
@@ -587,13 +587,37 @@ async function updateStatistics() {
 // 导出报告
 async function exportReport() {
     try {
-        const response = await fetch(`${API_BASE}/api/export`);
+        const response = await fetch(`${API_BASE}/export`);
         if (response.ok) {
-            const blob = await response.blob();
+            // 检查 Content-Type 判断返回格式
+            const contentType = response.headers.get('content-type');
+            let blob;
+            let filename = `mic_test_report_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.xlsx`;
+            
+            if (contentType && contentType.includes('application/json')) {
+                // Netlify Functions 返回 JSON（包含 base64 数据）
+                const data = await response.json();
+                if (data.status === 'success' && data.data) {
+                    // 解码 base64
+                    const binaryString = atob(data.data);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    filename = data.filename || filename;
+                } else {
+                    throw new Error(data.message || '导出失败');
+                }
+            } else {
+                // 本地开发或直接返回 blob
+                blob = await response.blob();
+            }
+            
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `mic_test_report_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.xlsx`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -616,7 +640,7 @@ async function clearResults() {
     }
     
     try {
-        await fetch(`${API_BASE}/api/results`, { method: 'DELETE' });
+        await fetch(`${API_BASE}/results`, { method: 'DELETE' });
         results = [];
         referenceData = null;
         updateStatistics();

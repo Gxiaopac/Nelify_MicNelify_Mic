@@ -431,16 +431,19 @@ def export_report():
             stats_df.to_excel(writer, sheet_name='统计信息', index=False)
 
         output.seek(0)
+        excel_data = output.read()
+        excel_base64 = base64.b64encode(excel_data).decode('utf-8')
+        
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         filename = f'mic_test_report_{timestamp}.xlsx'
-
-        # 直接以文件形式返回，供前端以 blob 下载
-        return send_file(
-            output,
-            as_attachment=True,
-            download_name=filename,
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
+        
+        # 在 Netlify Functions 中，返回 base64 编码的数据更可靠
+        # 前端会解码并下载
+        return jsonify({
+            'status': 'success',
+            'filename': filename,
+            'data': excel_base64
+        })
 
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
