@@ -19,6 +19,15 @@ const API_BASE = (window.location.protocol === 'file:' ||
   ? 'http://127.0.0.1:5000/api'
   : '/api';
 
+// 辅助函数：构建 API URL，避免双斜杠
+function buildApiUrl(path) {
+    // 移除 path 开头的斜杠
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    // 确保 API_BASE 以斜杠结尾（如果它不是空字符串）
+    const base = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
+    return `${base}/${cleanPath}`.replace(/\/+/g, '/');
+}
+
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
     initChart();
@@ -75,7 +84,7 @@ function initChart() {
 // 加载配置
 async function loadConfig() {
     try {
-        const url = `${API_BASE}/config`;
+        const url = buildApiUrl('config');
         log(`正在加载配置: ${url}`, 'info');
         const response = await fetch(url);
         
@@ -144,7 +153,7 @@ async function updateConfigFromUI() {
     config.enable_crest_factor_check = document.getElementById('enableCrestFactor').checked;
     
     try {
-        await fetch(`${API_BASE}/config`, {
+        await fetch(buildApiUrl('config'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(config)
@@ -349,7 +358,7 @@ async function analyzeAudio(audioData, micId, sampleRate) {
         updateStatus('⚙️ 分析数据中...');
         log('⚙️ 分析音频数据...');
         
-        const url = `${API_BASE}/analyze`;
+        const url = buildApiUrl('analyze');
         log(`请求 URL: ${url}`, 'info');
         
         const response = await fetch(url, {
@@ -566,7 +575,7 @@ function toggleReferenceMode() {
 // 更新标准麦克风信息
 async function updateReferenceInfo() {
     try {
-        const response = await fetch(`${API_BASE}/reference`);
+        const response = await fetch(buildApiUrl('reference'));
         const data = await response.json();
         
         const infoDiv = document.getElementById('referenceInfo');
@@ -596,7 +605,7 @@ async function updateReferenceInfo() {
 // 更新统计
 async function updateStatistics() {
     try {
-        const response = await fetch(`${API_BASE}/results`);
+        const response = await fetch(buildApiUrl('results'));
         const data = await response.json();
         results = data.results || [];
         
@@ -617,7 +626,7 @@ async function updateStatistics() {
 // 导出报告
 async function exportReport() {
     try {
-        const response = await fetch(`${API_BASE}/export`);
+        const response = await fetch(buildApiUrl('export'));
         if (response.ok) {
             // 检查 Content-Type 判断返回格式
             const contentType = response.headers.get('content-type');
@@ -670,7 +679,7 @@ async function clearResults() {
     }
     
     try {
-        await fetch(`${API_BASE}/results`, { method: 'DELETE' });
+        await fetch(buildApiUrl('results'), { method: 'DELETE' });
         results = [];
         referenceData = null;
         updateStatistics();
