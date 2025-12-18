@@ -13,10 +13,12 @@
   PIP_NO_BUILD_ISOLATION = "false"
 
 # Netlify Functions 配置（前端使用 /api/*，内部转发到函数）
+# 注意：:splat 会捕获 /api/ 后面的所有内容
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
+  force = false
 
 # 静态文件配置
 [[headers]]
