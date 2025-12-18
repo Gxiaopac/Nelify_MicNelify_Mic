@@ -1,6 +1,7 @@
 [build]
   # 仅安装依赖（Python Functions），前端为静态文件
-  command = "pip install -r requirements.txt"
+  # 注意：Netlify 会自动为 Functions 安装依赖，这里只安装根目录的依赖（如果需要）
+  command = "echo 'Build complete'"
   functions = "netlify/functions"
   publish = "."
 
