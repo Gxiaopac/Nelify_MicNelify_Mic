@@ -1,0 +1,23 @@
+{
+    "sample_rate": 44100,
+    "duration": 3,
+    "test_frequency": 1000,
+    "min_rms": 0.01,
+    "max_rms": 0.9,
+    "snr_threshold": 20,
+    "sensitivity_tolerance": 0.3,
+    "enable_thd_check": false,
+    "enable_peak_check": true,
+    "enable_snr_check": true,
+    "enable_sensitivity_check": true,
+    "enable_loopback_check": true,
+    "enable_mav_check": true,
+    "enable_crest_factor_check": true,
+    "peak_threshold": 0.98,
+    "thd_threshold": 0.1,
+    "mav_min": 0.01,
+    "mav_max": 0.9,
+    "crest_factor_min": 1.2,
+    "crest_factor_max": 5.0
+}
+

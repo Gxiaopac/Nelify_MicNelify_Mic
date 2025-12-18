@@ -1,0 +1,3 @@
+# Netlify redirects file (备选方案，如果 netlify.toml 不工作)
+/api/*  /.netlify/functions/api/:splat  200
+
