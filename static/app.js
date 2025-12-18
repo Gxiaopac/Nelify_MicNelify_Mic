@@ -75,11 +75,27 @@ function initChart() {
 // 加载配置
 async function loadConfig() {
     try {
-        const response = await fetch(`${API_BASE}/config`);
+        const url = `${API_BASE}/config`;
+        log(`正在加载配置: ${url}`, 'info');
+        const response = await fetch(url);
+        
+        // 检查响应类型
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            log(`配置加载失败: 返回的不是 JSON，而是 ${contentType}`, 'error');
+            log(`响应内容前100字符: ${text.substring(0, 100)}`, 'error');
+            log(`完整 URL: ${url}`, 'error');
+            log(`状态码: ${response.status}`, 'error');
+            return;
+        }
+        
         config = await response.json();
         updateCheckboxes();
+        log('配置加载成功', 'pass');
     } catch (error) {
         log(`配置加载失败: ${error.message}`, 'error');
+        console.error('配置加载错误详情:', error);
     }
 }
 
@@ -333,7 +349,10 @@ async function analyzeAudio(audioData, micId, sampleRate) {
         updateStatus('⚙️ 分析数据中...');
         log('⚙️ 分析音频数据...');
         
-        const response = await fetch(`${API_BASE}/analyze`, {
+        const url = `${API_BASE}/analyze`;
+        log(`请求 URL: ${url}`, 'info');
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -343,6 +362,17 @@ async function analyzeAudio(audioData, micId, sampleRate) {
                 is_setting_reference: isSettingReference
             })
         });
+        
+        // 检查响应类型
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            log(`分析失败: 返回的不是 JSON，而是 ${contentType}`, 'error');
+            log(`响应内容前200字符: ${text.substring(0, 200)}`, 'error');
+            log(`完整 URL: ${url}`, 'error');
+            log(`状态码: ${response.status}`, 'error');
+            throw new Error(`服务器返回了非 JSON 响应: ${contentType}`);
+        }
         
         const result = await response.json();
         
