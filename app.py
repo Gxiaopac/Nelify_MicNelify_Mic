@@ -230,13 +230,16 @@ def update_config():
     """更新配置"""
     global config
     new_config = request.json
+    print(f"[update_config] 收到配置: {new_config}")
     config.update(new_config)
     
     # 在 Netlify Functions 中，可能无法写入文件，所以只更新内存中的配置
     # with open('config.json', 'w', encoding='utf-8') as f:
     #     json.dump(config, f, indent=4, ensure_ascii=False)
     
-    return jsonify({'status': 'success'})
+    response_data = {'status': 'success'}
+    print(f"[update_config] 返回数据: {response_data}")
+    return jsonify(response_data)
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_audio():
