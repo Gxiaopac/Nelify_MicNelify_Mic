@@ -204,6 +204,12 @@ def judge_quality(rms, peak, snr, thd, mav, crest_factor, is_setting_reference=F
     is_pass = len(issues) == 0
     return is_pass, issues, rms_deviation
 
+@app.route('/')
+def index():
+    """主页面（用于 Render 等直接运行 Flask 的平台）"""
+    from flask import send_from_directory
+    return send_from_directory('.', 'index.html')
+
 @app.route('/test')
 def test():
     """测试路由"""
@@ -447,4 +453,21 @@ def export_report():
 
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+# 主页面路由已在上面定义（第 207 行）
+
+# 启动服务器（用于 Render 等平台）
+if __name__ == '__main__':
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    host = os.environ.get('HOST', '0.0.0.0')
+    
+    print("=" * 50)
+    print("麦克风批量测试工具 - Web版本 v2.10")
+    print("=" * 50)
+    print(f"服务器启动中...")
+    print(f"访问地址: http://{host}:{port}")
+    print("=" * 50)
+    
+    app.run(debug=False, host=host, port=port, use_reloader=False)
 

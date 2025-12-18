@@ -4,6 +4,6 @@ numpy>=1.24.0,<1.26.0
 scipy==1.10.1
 pandas==1.5.3
 openpyxl==3.1.2
-serverless-wsgi==3.0.4
+# serverless-wsgi==3.0.4  # 仅用于 Netlify Functions，Render 不需要
 
 
